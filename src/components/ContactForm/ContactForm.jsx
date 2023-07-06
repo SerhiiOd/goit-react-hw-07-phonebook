@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
-import PropTypes from 'prop-types';
 import {
   FormBlock,
   InputBlock,
@@ -8,50 +7,37 @@ import {
   Input,
   Button,
 } from './ContactForm.styled';
-import { useDispatch, useSelector } from 'react-redux';
-import { getContacts, addContact } from 'redux/contactsSlice';
+import {
+  useGetContactsQuery,
+  useCreateContactMutation,
+} from 'redux/contactsAPI';
 
-export default function ContactForm({ onSubmit }) {
+export default function ContactForm() {
   const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+  const [phone, setPhone] = useState('');
 
-  const contacts = useSelector(getContacts);
-  const dispatch = useDispatch();
+  const { data: contacts } = useGetContactsQuery();
+  const [createContact] = useCreateContactMutation();
 
   const changeName = e => setName(e.target.value);
-  const changeNumber = e => setNumber(e.target.value);
-
-  // const handleInputChange = event => {
-  //   const { name, value } = event.currentTarget;
-
-  //   switch (name) {
-  //     case 'name':
-  //       setName(value);
-  //       break;
-  //     case 'number':
-  //       setNumber(value);
-  //       break;
-  //     default:
-  //       return;
-  //   }
-  // };
+  const changePhone = e => setPhone(e.target.value);
 
   const handleSubmit = event => {
     event.preventDefault();
     const newContact = {
       name,
-      number,
+      phone,
       id: nanoid(),
     };
     contacts.find(contact => contact.name.toLowerCase() === name.toLowerCase())
       ? alert(`${name} is already in contacts`)
-      : dispatch(addContact(newContact));
+      : createContact(newContact);
     reset();
   };
 
   const reset = () => {
     setName('');
-    setNumber('');
+    setPhone('');
   };
 
   return (
@@ -72,15 +58,15 @@ export default function ContactForm({ onSubmit }) {
         </InputLabel>
 
         <InputLabel>
-          Number
+          Phone
           <Input
             type="tel"
-            name="number"
+            name="phone"
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
-            value={number}
-            onChange={changeNumber}
+            value={phone}
+            onChange={changePhone}
             placeholder="+0-00-00-00"
           />
         </InputLabel>
@@ -90,7 +76,3 @@ export default function ContactForm({ onSubmit }) {
     </FormBlock>
   );
 }
-
-ContactForm.propTypes = {
-  handleSubmit: PropTypes.func,
-};
